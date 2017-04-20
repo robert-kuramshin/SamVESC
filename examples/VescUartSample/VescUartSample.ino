@@ -9,12 +9,15 @@
 // #include Config.h out in VescUart.h
 
 //Include libraries copied from VESC
- #include "VescUart.h"
+#include "SamVESC.h"
 #include "datatypes.h"
 
+// #define DEBUG
 
-#define DEBUG
 unsigned long count;
+SamVESC vesc1(Serial1);
+struct bldcMeasure measuredValues;
+
 
 void setup() {
 	
@@ -26,7 +29,7 @@ void setup() {
 	#endif
 }
 
-struct bldcMeasure measuredValues;
+
 	
 // the loop function runs over and over again until power down or reset
 void loop() {
@@ -38,9 +41,9 @@ void loop() {
 	//	len = 0;
 	//}
 	
-	if (VescUartGetValue(measuredValues)) {
+	if (vesc1.VescUartGetValue(measuredValues)) {
 		Serial.print("Loop: "); Serial.println(count++);
-		SerialPrint(measuredValues);
+		vesc1.SerialPrint(measuredValues);
 	}
 	else
 	{
@@ -48,7 +51,6 @@ void loop() {
 	}
 	
 }
-
 
 
 

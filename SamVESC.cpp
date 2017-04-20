@@ -15,14 +15,20 @@ You should have received a copy of the GNU General Public License
 along with this program.If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "VescUart.h"
+#include "SamVESC.h"
 #include "buffer.h"
 #include "crc.h"
+
+SamVESC::SamVESC(HardwareSerial &print)
+{
+	Printer = &print;
+    Printer->begin(57600);  
+}
 
 bool UnpackPayload(uint8_t* message, int lenMes, uint8_t* payload, int lenPa);
 bool ProcessReadPacket(uint8_t* message, bldcMeasure& values, int len);
 
-int ReceiveUartMessage(uint8_t* payloadReceived) {
+int SamVESC::ReceiveUartMessage(uint8_t* payloadReceived) {
 
 	//Messages <= 255 start with 2. 2nd byte is length
 	//Messages >255 start with 3. 2nd and 3rd byte is length combined with 1st >>8 and then &0xFF
@@ -33,9 +39,9 @@ int ReceiveUartMessage(uint8_t* payloadReceived) {
 	uint8_t messageReceived[256];
 	int lenPayload = 0;
 
-	while (SERIALIO.available()) {
+	while (Printer->available()) {
 
-		messageReceived[counter++] = SERIALIO.read();
+		messageReceived[counter++] = Printer->read();
 
 		if (counter == 2) {//case if state of 'counter' with last read 1
 
@@ -114,7 +120,7 @@ bool UnpackPayload(uint8_t* message, int lenMes, uint8_t* payload, int lenPay) {
 	}
 }
 
-int PackSendPayload(uint8_t* payload, int lenPay) {
+int SamVESC::PackSendPayload(uint8_t* payload, int lenPay) {
 	uint16_t crcPayload = crc16(payload, lenPay);
 	int count = 0;
 	uint8_t messageSend[256];
@@ -144,7 +150,7 @@ int PackSendPayload(uint8_t* payload, int lenPay) {
 #endif // DEBUG
 
 	//Sending package
-	SERIALIO.write(messageSend, count);
+	Printer->write(messageSend, count);
 
 
 	//Returns number of send bytes
@@ -184,7 +190,7 @@ bool ProcessReadPacket(uint8_t* message, bldcMeasure& values, int len) {
 
 }
 
-bool VescUartGetValue(bldcMeasure& values) {
+bool SamVESC::VescUartGetValue(bldcMeasure& values) {
 	uint8_t command[1] = { COMM_GET_VALUES };
 	uint8_t payload[256];
 	PackSendPayload(command, 1);
@@ -200,7 +206,7 @@ bool VescUartGetValue(bldcMeasure& values) {
 	}
 }
 
-void VescUartSetCurrent(float current) {
+void SamVESC::VescUartSetCurrent(float current) {
 	int32_t index = 0;
 	uint8_t payload[5];
 		
@@ -209,42 +215,16 @@ void VescUartSetCurrent(float current) {
 	PackSendPayload(payload, 5);
 }
 
-void VescUartSetCurrentBrake(float brakeCurrent) {
+void SamVESC::VescUartSetCurrentBrake(float brakeCurrent) {
 	int32_t index = 0;
 	uint8_t payload[5];
 
 	payload[index++] = COMM_SET_CURRENT_BRAKE;
 	buffer_append_int32(payload, (int32_t)(brakeCurrent * 1000), &index);
 	PackSendPayload(payload, 5);
-
 }
 
-void VescUartSetNunchukValues(remotePackage& data) {
-	int32_t ind = 0;
-	uint8_t payload[11];
-	payload[ind++] = COMM_SET_CHUCK_DATA;
-	payload[ind++] = data.valXJoy;
-	payload[ind++] = data.valYJoy;
-	buffer_append_bool(payload, data.valLowerButton, &ind);
-	buffer_append_bool(payload, data.valUpperButton, &ind);
-	//Acceleration Data. Not used, Int16 (2 byte)
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-	payload[ind++] = 0;
-
-#ifdef DEBUG
-	DEBUGSERIAL.println("Data reached at VescUartSetNunchuckValues:");
-	DEBUGSERIAL.print("valXJoy = "); DEBUGSERIAL.print(data.valXJoy); DEBUGSERIAL.print(" valYJoy = "); DEBUGSERIAL.println(data.valYJoy);
-	DEBUGSERIAL.print("LowerButton = "); DEBUGSERIAL.print(data.valLowerButton); DEBUGSERIAL.print(" UpperButton = "); DEBUGSERIAL.println(data.valUpperButton);
-#endif
-
-	PackSendPayload(payload, 11);
-}
-
-void SerialPrint(uint8_t* data, int len) {
+void SamVESC::SerialPrint(uint8_t* data, int len) {
 
 	//	DEBUGSERIAL.print("Data to display: "); DEBUGSERIAL.println(sizeof(data));
 
@@ -257,7 +237,7 @@ void SerialPrint(uint8_t* data, int len) {
 }
 
 
-void SerialPrint(const bldcMeasure& values) {
+void SamVESC::SerialPrint(const bldcMeasure& values) {
 	DEBUGSERIAL.print("avgMotorCurrent: "); DEBUGSERIAL.println(values.avgMotorCurrent);
 	DEBUGSERIAL.print("avgInputCurrent: "); DEBUGSERIAL.println(values.avgInputCurrent);
 	DEBUGSERIAL.print("dutyCycleNow: "); DEBUGSERIAL.println(values.dutyCycleNow);
