@@ -19,11 +19,17 @@ along with this program.If not, see <http://www.gnu.org/licenses/>.
 #include "buffer.h"
 #include "crc.h"
 
-SamVESC::SamVESC(HardwareSerial &print)
+SamVESC::SamVESC(uint32_t baud)
 {
-	Printer = &print;
-    Printer->begin(57600);  
+	PrinterBaud = baud;
 }
+
+void SamVESC::Attach(HardwareSerial &print)
+{
+  Printer = &print;
+  Printer->begin(PrinterBaud);  
+}
+
 
 bool UnpackPayload(uint8_t* message, int lenMes, uint8_t* payload, int lenPa);
 bool ProcessReadPacket(uint8_t* message, bldcMeasure& values, int len);
@@ -111,7 +117,6 @@ bool UnpackPayload(uint8_t* message, int lenMes, uint8_t* payload, int lenPay) {
 		DEBUGSERIAL.print("Received: "); SerialPrint(message, lenMes); DEBUGSERIAL.println();
 		DEBUGSERIAL.print("Payload :      "); SerialPrint(payload, message[1] - 1); DEBUGSERIAL.println();
 #endif // DEBUG
-
 		return true;
 	}
 	else
@@ -190,7 +195,7 @@ bool ProcessReadPacket(uint8_t* message, bldcMeasure& values, int len) {
 
 }
 
-bool SamVESC::VescUartGetValue(bldcMeasure& values) {
+bool SamVESC::GetValue(bldcMeasure& values) {
 	uint8_t command[1] = { COMM_GET_VALUES };
 	uint8_t payload[256];
 	PackSendPayload(command, 1);
@@ -206,7 +211,7 @@ bool SamVESC::VescUartGetValue(bldcMeasure& values) {
 	}
 }
 
-void SamVESC::VescUartSetCurrent(float current) {
+void SamVESC::SetCurrent(float current) {
 	int32_t index = 0;
 	uint8_t payload[5];
 		
@@ -215,7 +220,7 @@ void SamVESC::VescUartSetCurrent(float current) {
 	PackSendPayload(payload, 5);
 }
 
-void SamVESC::VescUartSetCurrentBrake(float brakeCurrent) {
+void SamVESC::SetCurrentBrake(float brakeCurrent) {
 	int32_t index = 0;
 	uint8_t payload[5];
 

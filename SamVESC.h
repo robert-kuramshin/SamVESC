@@ -19,39 +19,21 @@ along with this program.If not, see <http://www.gnu.org/licenses/>.
 #ifndef SamVESC_h
 #define SamVESC_h
 
-//#include "Config.h" 
-
-/*TThis library was created on an Adruinio 2560 with different serial ports to have a better possibility
-to debug. The serial ports are define with #define:
-#define SERIALIO Serial1  		for the UART port to VESC
-#define DEBUGSERIAL Serial		for debuging over USB
-So you need here to define the right serial port for your arduino.
-If you want to use debug, uncomment DEBUGSERIAL and define a port.*/
-
-#ifndef SERIALIO
-
-	#ifdef __AVR_ATmega2560__ 
-	#define DEBUGSERIAL Serial
-	#endif
-
-	#ifdef ARDUINO_AVR_NANO
-	#define DEBUGSERIAL Serial
-	#endif
-#endif
+#define DEBUGSERIAL Serial
 
 #include "arduino.h" 
 #include "datatypes.h"
 #include "local_datatypes.h"
-///PackSendPayload Packs the payload and sends it over Serial.
-///Define in a Config.h a SERIAL with the Serial in Arduino Style you want to you
-///@param: payload as the payload [unit8_t Array] with length of int lenPayload
-///@return the number of bytes send
 
 class SamVESC
 {
  	public:
-	    SamVESC(HardwareSerial  &print);
+	    SamVESC(uint32_t baud);
+	    void Attach(HardwareSerial  &print);
 
+		///PackSendPayload Packs the payload and sends it over Serial.
+		///@param: payload as the payload [unit8_t Array] with length of int lenPayload
+		///@return the number of bytes send
 		int PackSendPayload(uint8_t* payload, int lenPay);
 
 		///ReceiveUartMessage receives the a message over Serial
@@ -74,19 +56,20 @@ class SamVESC
 		///Sends a command to VESC and stores the returned data
 		///@param bldcMeasure struct with received data
 		//@return true if sucess
-		bool VescUartGetValue(struct bldcMeasure& values);
+		bool GetValue(struct bldcMeasure& values);
 
 		///Sends a command to VESC to control the motor current
 		///@param current as float with the current for the motor
 
-		void VescUartSetCurrent(float current);
+		void SetCurrent(float current);
 
 		///Sends a command to VESC to control the motor brake
 		///@param breakCurrent as float with the current for the brake
 
-		void VescUartSetCurrentBrake(float brakeCurrent);
+		void SetCurrentBrake(float brakeCurrent);
 	private:
 		  HardwareSerial * Printer;
+		  uint32_t PrinterBaud = 115200;
 
 };
 
