@@ -196,19 +196,23 @@ bool ProcessReadPacket(uint8_t* message, bldcMeasure& values, int len) {
 }
 
 bool SamVESC::GetValue(bldcMeasure& values) {
-	uint8_t command[1] = { COMM_GET_VALUES };
-	uint8_t payload[256];
-	PackSendPayload(command, 1);
+	StartGetValue();
 	delay(100); //needed, otherwise data is not read
+	return EndGetValue(values);
+}
+
+void SamVESC::StartGetValue()
+{
+	uint8_t command[1] = { COMM_GET_VALUES };
+	PackSendPayload(command, 1);
+}
+
+bool SamVESC::EndGetValue(bldcMeasure& values)
+{
+	uint8_t payload[256];
 	int lenPayload = ReceiveUartMessage(payload);
-	if (lenPayload > 55) {
-		bool read = ProcessReadPacket(payload, values, lenPayload); //returns true if sucessful
-		return read;
-	}
-	else
-	{
-		return false;
-	}
+	if (lenPayload > 55) return ProcessReadPacket(payload, values, lenPayload); //returns true if sucessful
+	else return false;
 }
 
 void SamVESC::SetCurrent(float current) {

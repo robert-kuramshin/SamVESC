@@ -57,6 +57,8 @@ class SamVESC
 		///@param bldcMeasure struct with received data
 		//@return true if sucess
 		bool GetValue(struct bldcMeasure& values);
+		void StartGetValue();
+		bool EndGetValue(struct bldcMeasure& values);
 
 		///Sends a command to VESC to control the motor current
 		///@param current as float with the current for the motor
