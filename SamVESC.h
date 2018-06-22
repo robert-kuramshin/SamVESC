@@ -65,6 +65,8 @@ class SamVESC
 
 		void SetCurrent(float current);
 
+		void SetRPM(float rpm);
+
 		///Sends a command to VESC to control the motor brake
 		///@param breakCurrent as float with the current for the brake
 

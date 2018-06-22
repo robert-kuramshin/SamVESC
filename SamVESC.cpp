@@ -215,6 +215,15 @@ bool SamVESC::EndGetValue(bldcMeasure& values)
 	else return false;
 }
 
+void SamVESC::SetRPM(float RPM) {
+   int32_t index = 0;
+   uint8_t payload[5];
+
+   payload[index++] = COMM_SET_RPM;
+   buffer_append_int32(payload, (int32_t)(RPM), &index);
+   PackSendPayload(payload, 5);
+}
+
 void SamVESC::SetCurrent(float current) {
 	int32_t index = 0;
 	uint8_t payload[5];
