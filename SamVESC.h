@@ -21,7 +21,7 @@ along with this program.If not, see <http://www.gnu.org/licenses/>.
 
 #define DEBUGSERIAL Serial
 
-#include "arduino.h" 
+#include "Arduino.h" 
 #include "datatypes.h"
 #include "local_datatypes.h"
 
